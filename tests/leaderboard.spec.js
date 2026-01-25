@@ -3,24 +3,29 @@ const { test, expect } = require('@playwright/test');
 test.describe('Tic-Tac-Toe Leaderboard', () => {
   let context1, context2, page1, page2, gameId;
 
-  // Helper function to get scores from the leaderboard
-  const getScores = async (page) => {
+  // Helper function to get leaderboard data from the leaderboard
+  const getLeaderboardData = async (page) => {
     await page.waitForSelector('#show-leaderboard-button');
     await page.click('#show-leaderboard-button');
     await page.waitForSelector('#leaderboard-modal:not(.hidden)');
-    const scores = {};
+    const playerData = {};
     const rows = await page.locator('#leaderboard-table-container table tr').all();
     // Skip header row by starting loop at 1 if it exists
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       const name = await row.locator('td').nth(1).textContent();
-      const score = parseInt(await row.locator('td').nth(4).textContent(), 10);
+      const wins = parseInt(await row.locator('td').nth(2).textContent(), 10);
+      const losses = parseInt(await row.locator('td').nth(3).textContent(), 10);
+      const draws = parseInt(await row.locator('td').nth(4).textContent(), 10);
+      const winPercentageText = await row.locator('td').nth(5).textContent();
+      const winPercentage = parseFloat(winPercentageText.replace('%', ''));
+      const lastPlayed = await row.locator('td').nth(6).textContent();
       if (name) {
-        scores[name] = score;
+        playerData[name] = { wins, losses, draws, winPercentage, lastPlayed };
       }
     }
     await page.click('#leaderboard-modal .btn-close');
-    return scores;
+    return playerData;
   };
 
   test.beforeEach(async ({ browser }) => {
@@ -52,23 +57,23 @@ test.describe('Tic-Tac-Toe Leaderboard', () => {
     // 1. Pre-flight check to ensure the API server is running
     console.log('Pre-flight check: Verifying API server is accessible...');
     try {
-      const apiResponse = await page.request.get('http://localhost:5000/leaderboard');
+      const apiResponse = await page.request.get('http://localhost:5123/leaderboard');
       expect(apiResponse.ok()).toBeTruthy();
       console.log('API server is responsive.');
     } catch (error) {
-      console.error('API server check failed. Make sure the API server is running on http://localhost:5000.', error);
+      console.error('API server check failed. Make sure the API server is running on http://localhost:5123.', error);
       throw new Error('API server is not accessible.');
     }
 
-    // 2. Go to the page and get initial scores
+    // 2. Go to the page and get initial leaderboard data
     await page1.goto('http://localhost:8000');
     await page1.waitForSelector('#name-input'); // Wait for lobby to be ready
-    console.log('Getting initial scores...');
-    const initialScores = await getScores(page1);
+    console.log('Getting initial leaderboard data...');
+    const initialData = await getLeaderboardData(page1);
 
-    const aliceInitialScore = initialScores[aliceName] || 0;
-    const bobInitialScore = initialScores[bobName] || 0;
-    console.log(`Initial Scores - Alice: ${aliceInitialScore}, Bob: ${bobInitialScore}`);
+    const aliceInitial = initialData[aliceName] || { wins: 0, losses: 0, winPercentage: 0.0 };
+    const bobInitial = initialData[bobName] || { wins: 0, losses: 0, winPercentage: 0.0 };
+    console.log(`Initial Data - Alice: ${JSON.stringify(aliceInitial)}, Bob: ${JSON.stringify(bobInitial)}`);
 
     // 3. Player 1 (Alice) creates a game
 
@@ -124,17 +129,118 @@ test.describe('Tic-Tac-Toe Leaderboard', () => {
     await page1.waitForSelector('#lobby-container:not(.hidden)');
     console.log('Returned to lobby.');
 
-    // 8. Get final scores and verify the update
-    console.log('Getting final scores...');
-    const finalScores = await getScores(page1);
+    // 8. Get final leaderboard data and verify the update
+    console.log('Getting final leaderboard data...');
+    const finalData = await getLeaderboardData(page1);
 
-    const aliceFinalScore = finalScores[aliceName] || 0;
-    const bobFinalScore = finalScores[bobName] || 0;
-    console.log(`Final Scores - Alice: ${aliceFinalScore}, Bob: ${bobFinalScore}`);
+    const aliceFinal = finalData[aliceName];
+    const bobFinal = finalData[bobName];
+    console.log(`Final Data - Alice: ${JSON.stringify(aliceFinal)}, Bob: ${JSON.stringify(bobFinal)}`);
 
-    // 9. Assert the scores
-    expect(aliceFinalScore).toBe(aliceInitialScore);
-    expect(bobFinalScore).toBe(bobInitialScore + 3);
-    console.log('Leaderboard scores updated correctly. Test complete.');
+    // 9. Assert Bob has one more win (Bob should be in top 10 with 100% win rate)
+    expect(bobFinal).toBeDefined();
+    expect(bobFinal.wins).toBe(bobInitial.wins + 1);
+
+    // 10. Verify Bob's win percentage is calculated correctly
+    const bobTotalGames = bobFinal.wins + bobFinal.losses;
+    const expectedBobWinPct = (bobFinal.wins / bobTotalGames) * 100;
+    expect(bobFinal.winPercentage).toBeCloseTo(expectedBobWinPct, 2);
+
+    // 11. If Alice is in the top 10, verify her stats
+    if (aliceFinal) {
+      expect(aliceFinal.losses).toBe(aliceInitial.losses + 1);
+      const aliceTotalGames = aliceFinal.wins + aliceFinal.losses;
+      const expectedAliceWinPct = (aliceFinal.wins / aliceTotalGames) * 100;
+      expect(aliceFinal.winPercentage).toBeCloseTo(expectedAliceWinPct, 2);
+      console.log('Alice is in top 10 and her stats are correct.');
+    } else {
+      console.log('Alice is not in top 10 (has 0% win rate and there are many other players).');
+    }
+
+    console.log('Leaderboard data updated correctly. Test complete.');
+  });
+
+  test('should display all required columns', async ({ page }) => {
+    test.setTimeout(30000);
+
+    // Navigate to the page
+    await page.goto('http://localhost:8000');
+    await page.waitForSelector('#name-input');
+
+    // Open leaderboard
+    await page.click('#show-leaderboard-button');
+    await page.waitForSelector('#leaderboard-modal:not(.hidden)');
+
+    // Verify table headers
+    const headers = await page.locator('#leaderboard-table-container table thead th').allTextContents();
+    expect(headers).toEqual(['Rank', 'Name', 'Wins', 'Losses', 'Draws', 'Win %', 'Last Played']);
+
+    // Close leaderboard
+    await page.click('#leaderboard-modal .btn-close');
+    console.log('All required columns are displayed correctly.');
+  });
+
+  test('should sort players by wins, draws, then losses (all descending)', async ({ page }) => {
+    test.setTimeout(30000);
+
+    // Navigate to the page
+    await page.goto('http://localhost:8000');
+    await page.waitForSelector('#name-input');
+
+    // Open leaderboard
+    await page.click('#show-leaderboard-button');
+    await page.waitForSelector('#leaderboard-modal:not(.hidden)');
+
+    // Get all player stats
+    const rows = await page.locator('#leaderboard-table-container table tbody tr').all();
+    const playerStats = [];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const wins = parseInt(await row.locator('td').nth(2).textContent(), 10);
+      const losses = parseInt(await row.locator('td').nth(3).textContent(), 10);
+      const draws = parseInt(await row.locator('td').nth(4).textContent(), 10);
+      playerStats.push({ wins, draws, losses });
+    }
+
+    // Verify sorting order: wins (desc), then draws (desc), then losses (desc)
+    for (let i = 0; i < playerStats.length - 1; i++) {
+      const current = playerStats[i];
+      const next = playerStats[i + 1];
+
+      // First, compare by wins (descending)
+      if (current.wins !== next.wins) {
+        expect(current.wins).toBeGreaterThan(next.wins);
+      } else if (current.draws !== next.draws) {
+        // If wins are equal, compare by draws (descending)
+        expect(current.draws).toBeGreaterThan(next.draws);
+      } else {
+        // If wins and draws are equal, compare by losses (descending)
+        expect(current.losses).toBeGreaterThanOrEqual(next.losses);
+      }
+    }
+
+    // Close leaderboard
+    await page.click('#leaderboard-modal .btn-close');
+    console.log('Players are sorted by wins, then draws, then losses (all descending).');
+  });
+
+  test('should display only top 10 players', async ({ page }) => {
+    test.setTimeout(30000);
+
+    // Navigate to the page
+    await page.goto('http://localhost:8000');
+    await page.waitForSelector('#name-input');
+
+    // Open leaderboard
+    await page.click('#show-leaderboard-button');
+    await page.waitForSelector('#leaderboard-modal:not(.hidden)');
+
+    // Count the number of rows (excluding header)
+    const rows = await page.locator('#leaderboard-table-container table tbody tr').all();
+    expect(rows.length).toBeLessThanOrEqual(10);
+
+    // Close leaderboard
+    await page.click('#leaderboard-modal .btn-close');
+    console.log('Leaderboard displays at most 10 players.');
   });
 });
