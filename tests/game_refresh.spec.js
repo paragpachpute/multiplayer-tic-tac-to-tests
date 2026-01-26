@@ -29,6 +29,7 @@ test.describe('Tic-Tac-Toe Game Refresh', () => {
 
     // 1. Player 1 (Alice) creates a game
     await page1.goto('http://localhost:8000');
+    await page1.click('#select-host-mode');
     await page1.fill('#name-input', 'Alice');
     await page1.click('#create-game-button');
     await page1.waitForSelector('#game-id-display');
@@ -39,6 +40,7 @@ test.describe('Tic-Tac-Toe Game Refresh', () => {
 
     // 2. Player 2 (Bob) joins the game
     await page2.goto('http://localhost:8000');
+    await page2.click('#select-join-mode');
     await page2.fill('#name-input', 'Bob');
     await page2.fill('#game-id-input', gameId);
     await page2.click('#join-game-button');

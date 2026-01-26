@@ -30,7 +30,8 @@ test.describe('Tic-Tac-Toe Waiting Room Refresh', () => {
     // 1. Player 1 (Alice) creates a game
     console.log('Player 1 creating game...');
     await page1.goto('http://localhost:8000');
-    await page1.waitForSelector('#name-input');
+    await page1.waitForSelector('#select-host-mode');
+    await page1.click('#select-host-mode');
     await page1.fill('#name-input', 'Alice');
     await page1.click('#create-game-button');
 
@@ -84,7 +85,8 @@ test.describe('Tic-Tac-Toe Waiting Room Refresh', () => {
     // 6. Player 2 (Bob) joins the game
     console.log('Player 2 joining game...');
     await page2.goto('http://localhost:8000');
-    await page2.waitForSelector('#name-input');
+    await page2.waitForSelector('#select-join-mode');
+    await page2.click('#select-join-mode');
     await page2.fill('#name-input', 'Bob');
     await page2.fill('#game-id-input', gameId);
     await page2.click('#join-game-button');
@@ -128,6 +130,7 @@ test.describe('Tic-Tac-Toe Waiting Room Refresh', () => {
 
     // Create game
     await page1.goto('http://localhost:8000');
+    await page1.click('#select-host-mode');
     await page1.fill('#name-input', 'Alice');
     await page1.click('#create-game-button');
 

@@ -33,8 +33,9 @@ test.describe('Tic-Tac-Toe Full Game Flow', () => {
       console.log('Navigating Player 1 to http://localhost:8000...');
       await page1.goto('http://localhost:8000', { timeout: 30000 }); // Increase navigation timeout
       console.log('Player 1 navigation complete.');
-      await page1.waitForSelector('#name-input');
-      console.log('Player 1 found name input.');
+      await page1.waitForSelector('#select-host-mode');
+      console.log('Player 1 found mode selection.');
+      await page1.click('#select-host-mode');
       await page1.fill('#name-input', 'Alice');
       await page1.click('#create-game-button');
       await page1.waitForSelector('#game-id-display');
@@ -47,8 +48,9 @@ test.describe('Tic-Tac-Toe Full Game Flow', () => {
       console.log('Navigating Player 2 to http://localhost:8000...');
       await page2.goto('http://localhost:8000', { timeout: 30000 });
       console.log('Player 2 navigation complete.');
-      await page2.waitForSelector('#name-input');
-      console.log('Player 2 found name input.');
+      await page2.waitForSelector('#select-join-mode');
+      console.log('Player 2 found mode selection.');
+      await page2.click('#select-join-mode');
       await page2.fill('#name-input', 'Bob');
       await page2.fill('#game-id-input', gameId);
       await page2.click('#join-game-button');

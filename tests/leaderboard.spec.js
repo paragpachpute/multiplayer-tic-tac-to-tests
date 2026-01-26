@@ -67,7 +67,7 @@ test.describe('Tic-Tac-Toe Leaderboard', () => {
 
     // 2. Go to the page and get initial leaderboard data
     await page1.goto('http://localhost:8000');
-    await page1.waitForSelector('#name-input'); // Wait for lobby to be ready
+    await page1.waitForSelector('#select-host-mode'); // Wait for lobby to be ready
     console.log('Getting initial leaderboard data...');
     const initialData = await getLeaderboardData(page1);
 
@@ -76,7 +76,7 @@ test.describe('Tic-Tac-Toe Leaderboard', () => {
     console.log(`Initial Data - Alice: ${JSON.stringify(aliceInitial)}, Bob: ${JSON.stringify(bobInitial)}`);
 
     // 3. Player 1 (Alice) creates a game
-
+    await page1.click('#select-host-mode');
     await page1.fill('#name-input', aliceName);
     await page1.click('#create-game-button');
     await page1.waitForSelector('#game-id-display');
@@ -87,7 +87,7 @@ test.describe('Tic-Tac-Toe Leaderboard', () => {
 
     // 4. Player 2 (Bob) joins the game
     await page2.goto('http://localhost:8000');
-
+    await page2.click('#select-join-mode');
     await page2.fill('#name-input', bobName);
     await page2.fill('#game-id-input', gameId);
     await page2.click('#join-game-button');
@@ -165,7 +165,7 @@ test.describe('Tic-Tac-Toe Leaderboard', () => {
 
     // Navigate to the page
     await page.goto('http://localhost:8000');
-    await page.waitForSelector('#name-input');
+    await page.waitForSelector('#show-leaderboard-button');
 
     // Open leaderboard
     await page.click('#show-leaderboard-button');
@@ -185,7 +185,7 @@ test.describe('Tic-Tac-Toe Leaderboard', () => {
 
     // Navigate to the page
     await page.goto('http://localhost:8000');
-    await page.waitForSelector('#name-input');
+    await page.waitForSelector('#show-leaderboard-button');
 
     // Open leaderboard
     await page.click('#show-leaderboard-button');
@@ -229,7 +229,7 @@ test.describe('Tic-Tac-Toe Leaderboard', () => {
 
     // Navigate to the page
     await page.goto('http://localhost:8000');
-    await page.waitForSelector('#name-input');
+    await page.waitForSelector('#show-leaderboard-button');
 
     // Open leaderboard
     await page.click('#show-leaderboard-button');

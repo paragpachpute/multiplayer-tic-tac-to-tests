@@ -15,6 +15,7 @@ test.describe('Full Ultimate Tic-Tac-Toe Game', () => {
 
         // 1. Setup: 'Alice' creates an Ultimate game, 'Bob' joins
         await page1.goto('http://localhost:8000');
+        await page1.click('#select-host-mode');
         await page1.fill('#name-input', 'Alice');
         await page1.locator('input[name="game-mode"][value="ultimate"]').check();
         await page1.click('#create-game-button');
@@ -24,6 +25,7 @@ test.describe('Full Ultimate Tic-Tac-Toe Game', () => {
         expect(gameId).toBeTruthy();
 
         await page2.goto('http://localhost:8000');
+        await page2.click('#select-join-mode');
         await page2.fill('#name-input', 'Bob');
         await page2.fill('#game-id-input', gameId);
         await page2.click('#join-game-button');

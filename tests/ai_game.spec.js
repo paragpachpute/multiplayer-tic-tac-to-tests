@@ -19,6 +19,7 @@ test.describe('Tic-Tac-Toe vs. Computer', () => {
     console.log('Starting AI game test...');
 
     // 1. Start a game against the computer
+    await page.click('#select-ai-mode');
     await page.fill('#name-input', 'Human Player');
     await page.click('#create-ai-game-button');
     console.log('AI game created.');

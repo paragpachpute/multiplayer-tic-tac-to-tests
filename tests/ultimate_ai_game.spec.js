@@ -24,7 +24,8 @@ test.describe('Ultimate Tic-Tac-Toe vs. AI', () => {
 
     // 1. Start an Ultimate AI Game
     await page.goto('http://localhost:8000');
-    await page.waitForSelector('#name-input');
+    await page.waitForSelector('#select-ai-mode');
+    await page.click('#select-ai-mode');
     await page.fill('#name-input', 'E2E Tester');
     await page.check('input[value="ultimate"]');
     await page.click('#create-ai-game-button');

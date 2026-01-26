@@ -28,6 +28,7 @@ test.describe('Ultimate Tic-Tac-Toe Game Flow', () => {
 
         // 1. Alice creates an Ultimate game
         await page1.goto('http://localhost:8000');
+        await page1.click('#select-host-mode');
         await page1.fill('#name-input', 'Alice');
         await page1.locator('input[name="game-mode"][value="ultimate"]').check();
         await page1.click('#create-game-button');
@@ -39,6 +40,7 @@ test.describe('Ultimate Tic-Tac-Toe Game Flow', () => {
 
         // 2. Bob joins the game
         await page2.goto('http://localhost:8000');
+        await page2.click('#select-join-mode');
         await page2.fill('#name-input', 'Bob');
         await page2.fill('#game-id-input', gameId);
         await page2.click('#join-game-button');

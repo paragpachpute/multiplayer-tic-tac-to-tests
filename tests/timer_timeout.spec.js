@@ -35,8 +35,9 @@ test.describe('Timer and Timeout Behavior', () => {
     // Player 1 (Alice) creates a game
     console.log("Alice: Navigating to page...");
     await page1.goto('http://localhost:8000', { timeout: 15000 });
-    await page1.waitForSelector('#name-input');
+    await page1.waitForSelector('#select-host-mode');
     console.log("Alice: Filling name and creating game...");
+    await page1.click('#select-host-mode');
     await page1.fill('#name-input', 'Alice');
     await page1.check('input[value="standard"]');
     await page1.click('#create-game-button');
@@ -51,8 +52,9 @@ test.describe('Timer and Timeout Behavior', () => {
     // Player 2 (Bob) joins the game
     console.log("Bob: Navigating to page...");
     await page2.goto('http://localhost:8000', { timeout: 15000 });
-    await page2.waitForSelector('#name-input');
+    await page2.waitForSelector('#select-join-mode');
     console.log("Bob: Filling name and joining game...");
+    await page2.click('#select-join-mode');
     await page2.fill('#name-input', 'Bob');
     await page2.fill('#game-id-input', gameId);
     await page2.click('#join-game-button');
@@ -97,8 +99,9 @@ test.describe('Timer and Timeout Behavior', () => {
     // Player 1 (Alice) creates an ultimate game
     console.log("Alice: Navigating for ultimate game...");
     await page1.goto('http://localhost:8000', { timeout: 15000 });
-    await page1.waitForSelector('#name-input');
+    await page1.waitForSelector('#select-host-mode');
     console.log("Alice: Filling name and creating ultimate game...");
+    await page1.click('#select-host-mode');
     await page1.fill('#name-input', 'Alice');
     await page1.check('input[value="ultimate"]'); // Select ultimate mode
     await page1.click('#create-game-button');
@@ -113,8 +116,9 @@ test.describe('Timer and Timeout Behavior', () => {
     // Player 2 (Bob) joins the game
     console.log("Bob: Navigating for ultimate game...");
     await page2.goto('http://localhost:8000', { timeout: 15000 });
-    await page2.waitForSelector('#name-input');
+    await page2.waitForSelector('#select-join-mode');
     console.log("Bob: Filling name and joining ultimate game...");
+    await page2.click('#select-join-mode');
     await page2.fill('#name-input', 'Bob');
     await page2.fill('#game-id-input', gameId);
     await page2.click('#join-game-button');
